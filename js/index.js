@@ -75,16 +75,7 @@ async function connect(update) {
         const feedDoc = db.collection("feeds").doc();
         const offer = feedDoc.collection("offer");
         const candidate = feedDoc.collection("candidate");
-        // const newc = feedDoc.collection("newc");
         update ? (link.innerText = feedDoc.id):null;
-        
-        // newc.onSnapshot((snapshot) => {
-        //     snapshot.docChanges().forEach(async (change) => {
-        //         if(change.type === "added"){
-        //             connect(false);
-        //         }
-        //     })
-        // })
 
         PeerConnection.onicecandidate = event => {
             event.candidate && offer.add(event.candidate.toJSON())
