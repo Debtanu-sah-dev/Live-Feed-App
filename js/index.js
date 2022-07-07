@@ -69,19 +69,26 @@ list.addEventListener("change", async function () {
     camera.click();
 });
 
-connectlink.addEventListener("click", async function () {
+function connect(update) {
     if(isCamerOn){
-        connectlink.style.display = "none";
+        update && (connectlink.style.display = "none");
         const feedDoc = db.collection("feeds").doc();
         const offer = feedDoc.collection("offer");
         const candidate = feedDoc.collection("candidate");
-        link.innerText = feedDoc.id;
+        const newc = feedDoc.collection("newc");
+        update && (link.innerText = feedDoc.id);
+        
+        // newc.onSnapshot((snapshot) => {
+        //     snapshot.docChanges().forEach(async (change) => {
+        //         if(change.type === "added"){
+        //             connect(false);
+        //         }
+        //     })
+        // })
 
         PeerConnection.onicecandidate = event => {
             event.candidate && offer.add(event.candidate.toJSON())
         }
-    
-    
         const offerDescriptor = await PeerConnection.createOffer();
         await PeerConnection.setLocalDescription(offerDescriptor);
     
@@ -113,6 +120,10 @@ connectlink.addEventListener("click", async function () {
         alert("Please open your camera first");
         camera.click()
     }
+}
+
+connectlink.addEventListener("click", async function () {
+    connect(true);
 })
 
 const newList = getCameras();
