@@ -7,21 +7,18 @@
     <title>Document</title>
 </head>
 <body>
-    <div id="video_container">
-        <h1 id="link" data-link></h1>
-        <button class="button" data-copy>Copy Link</button>
-        <video muted id="video" autoplay playsinline></video>
+    <div id="connecter">
+        <input type="text" data-link>
+        <button class="button" data-connecter>Connect</button>
     </div>
-    <div id="controls">
-        <select class="select" data-list></select>
-        <button class="button" data-camera>Open Camera</button>
-        <button class="button" data-connectlink>Connect <span>LINK<span></button>
+    <div id="video-container">
+        <video id="video" autoplay playsinline ></video>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="js/FIREBASE_CONFIG.JS"></script>
-    <script src="js/index.js"></script>
+    <script src="js/remote.js"></script>
 </body>
 </html>
