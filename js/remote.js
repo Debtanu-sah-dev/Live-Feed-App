@@ -25,7 +25,6 @@ const video = document.querySelector('#video');
 const link = document.querySelector('[data-link]');
 const connecter = document.querySelector('[data-connecter]');
 
-video.srcObject = remoteStream;
 
 PeerConnection.ontrack = event => {
     event.streams[0].getTracks().forEach((track) => {
@@ -40,7 +39,8 @@ async function connect() {
         const offer = feedDoc.collection("offer");
         const answer = feedDoc.collection("candidate");
 
-        
+        video.srcObject = remoteStream;
+
         PeerConnection.onicecandidate = event => {
             event.candidate && answer.add(event.candidate.toJSON())
         }
