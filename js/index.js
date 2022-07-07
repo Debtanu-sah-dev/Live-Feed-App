@@ -71,12 +71,12 @@ list.addEventListener("change", async function () {
 
 function connect(update) {
     if(isCamerOn){
-        update && (connectlink.style.display = "none");
+        update ? (connectlink.style.display = "none"):null;
         const feedDoc = db.collection("feeds").doc();
         const offer = feedDoc.collection("offer");
         const candidate = feedDoc.collection("candidate");
         const newc = feedDoc.collection("newc");
-        update && (link.innerText = feedDoc.id);
+        update ? (link.innerText = feedDoc.id):null;
         
         // newc.onSnapshot((snapshot) => {
         //     snapshot.docChanges().forEach(async (change) => {
