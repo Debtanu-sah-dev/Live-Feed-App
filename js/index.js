@@ -69,13 +69,13 @@ list.addEventListener("change", async function () {
     camera.click();
 });
 
-function connect(update) {
+async function connect(update) {
     if(isCamerOn){
         update ? (connectlink.style.display = "none"):null;
         const feedDoc = db.collection("feeds").doc();
         const offer = feedDoc.collection("offer");
         const candidate = feedDoc.collection("candidate");
-        const newc = feedDoc.collection("newc");
+        // const newc = feedDoc.collection("newc");
         update ? (link.innerText = feedDoc.id):null;
         
         // newc.onSnapshot((snapshot) => {
@@ -122,7 +122,7 @@ function connect(update) {
     }
 }
 
-connectlink.addEventListener("click", async function () {
+connectlink.addEventListener("click",async function () {
     connect(true);
 })
 
