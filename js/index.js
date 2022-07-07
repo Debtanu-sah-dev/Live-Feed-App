@@ -71,6 +71,7 @@ async function connect(update,PeerConnection) {
         const feedDoc = db.collection("feeds").doc();
         const offer = feedDoc.collection("offer");
         const candidate = feedDoc.collection("candidate");
+        const newp = feedDoc.collection("newp");
         update ? (link.innerText = feedDoc.id):null;
         localStream.getTracks().forEach(track => {
             PeerConnection.addTrack(track, localStream);
@@ -82,11 +83,27 @@ async function connect(update,PeerConnection) {
         const offerDescriptor = await PeerConnection.createOffer();
         await PeerConnection.setLocalDescription(offerDescriptor);
     
+        newp.onSnapshot((snapshot) => {
+            snapshot.docChanges().forEach(async (change) => {
+                if(change.type === "added"){
+                    let pc = new RTCPeerConnection(servers);
+                    peerconnections.push(pc)
+                    let val = await connect(false,pc);
+                    console.log(change)
+
+                    newp.doc(change.doc.id).set({
+                        id:val,
+                    })
+                }
+            })
+        })
+
         await feedDoc.set({
             offer:{
                 sdp: PeerConnection.localDescription.sdp,
                 type: PeerConnection.localDescription.type
-            }
+            },
+            full:false
         });
 
         feedDoc.onSnapshot(async (snapshot) => {
@@ -105,6 +122,8 @@ async function connect(update,PeerConnection) {
                 }
             })
         })
+
+        return feedDoc.id
     }
     else{
         alert("Please open your camera first");

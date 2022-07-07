@@ -32,57 +32,75 @@ PeerConnection.ontrack = event => {
     });
 }
 
-async function connect() {
+async function connect(feedId = link.value) {
     try {
-        const feedId = link.value;
         const feedDoc = db.collection("feeds").doc(feedId);
         const offer = feedDoc.collection("offer");
         const answer = feedDoc.collection("candidate");
-
-        video.srcObject = remoteStream;
-
-        PeerConnection.onicecandidate = event => {
-            event.candidate && answer.add(event.candidate.toJSON())
-        }
-
+        const newp = feedDoc.collection("newp");
         let callData = await feedDoc.get();
+        if(callData.data().full == false){
 
-        const offerer = new RTCSessionDescription(callData.data().offer);
-        await PeerConnection.setRemoteDescription(offerer);
-
-        let answerer = await PeerConnection.createAnswer();
-        await PeerConnection.setLocalDescription(answerer);
-        feedDoc.update({
-            answer:{
-                sdp: answerer.sdp,
-                type: answerer.type
+            video.srcObject = remoteStream;
+    
+            PeerConnection.onicecandidate = event => {
+                event.candidate && answer.add(event.candidate.toJSON())
             }
-        })
+    
+    
+            const offerer = new RTCSessionDescription(callData.data().offer);
+            await PeerConnection.setRemoteDescription(offerer);
+    
+            let answerer = await PeerConnection.createAnswer();
+            await PeerConnection.setLocalDescription(answerer);
+            feedDoc.update({
+                answer:{
+                    sdp: answerer.sdp,
+                    type: answerer.type
+                },
+                full:true
+            })
+    
+            offer.onSnapshot(async function (snapshot) {
+                snapshot.docChanges().forEach(async function (change) {
+                    if (change.type === "added") {
+                        const candidate = new RTCIceCandidate(change.doc.data());
+                        await PeerConnection.addIceCandidate(candidate);
+                    }
+                })
+            })
+    
+            // if(feedDoc){
+            //     throw new Error();
+            // }
+            // connecter.style.display = "none";
+            // let remDesc = new RTCSessionDescription(await feedDoc.get().data().sdp);
+            // await PeerConnection.setRemoteDescription(remDesc);
+            // let answer = await PeerConnection.createAnswer();
+            // await PeerConnection.setLocalDescription(answer);
+        }
+        else{
+            let doc = newp.doc();
 
-        offer.onSnapshot(async function (snapshot) {
-            snapshot.docChanges().forEach(async function (change) {
-                if (change.type === "added") {
-                    const candidate = new RTCIceCandidate(change.doc.data());
-                    await PeerConnection.addIceCandidate(candidate);
+            doc.set({})
+
+            doc.onSnapshot((snapshot) => {
+                const data = snapshot.data();
+                if(!PeerConnection.currentRemoteDescription && data.id != null){
+                    connect(data.id);
                 }
             })
-        })
+        }
 
-        // if(feedDoc){
-        //     throw new Error();
-        // }
-        // connecter.style.display = "none";
-        // let remDesc = new RTCSessionDescription(await feedDoc.get().data().sdp);
-        // await PeerConnection.setRemoteDescription(remDesc);
-        // let answer = await PeerConnection.createAnswer();
-        // await PeerConnection.setLocalDescription(answer);
     } catch (e) {
         console.error(e);
         alert("Invalid Link");
     }
 }
 
-connecter.addEventListener("click", connect);
+connecter.addEventListener("click", () => {
+    connect()
+});
 
 //Initialize link
 if (new URLSearchParams(location.search).get("c") != null) {
