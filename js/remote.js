@@ -68,9 +68,6 @@ async function connect() {
             })
         })
 
-
-
-        video.play();
         // if(feedDoc){
         //     throw new Error();
         // }
