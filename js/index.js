@@ -15,7 +15,7 @@ const servers = {
 
 //Global Stream
 
-let PeerConnection = new RTCPeerConnection(servers);
+let peerconnections = [];
 let localStream = null;
 
 // DOM Elements
@@ -54,11 +54,7 @@ camera.addEventListener("click", async function () {
             deviceId: list.value
         }
     });
-
-    localStream.getTracks().forEach(track => {
-        PeerConnection.addTrack(track, localStream);
-    });
-
+    
     video.srcObject = localStream;
     video.play();
 
@@ -69,13 +65,16 @@ list.addEventListener("change", async function () {
     camera.click();
 });
 
-async function connect(update) {
+async function connect(update,PeerConnection) {
     if(isCamerOn){
         update ? (connectlink.style.display = "none"):null;
         const feedDoc = db.collection("feeds").doc();
         const offer = feedDoc.collection("offer");
         const candidate = feedDoc.collection("candidate");
         update ? (link.innerText = feedDoc.id):null;
+        localStream.getTracks().forEach(track => {
+            PeerConnection.addTrack(track, localStream);
+        });
 
         PeerConnection.onicecandidate = event => {
             event.candidate && offer.add(event.candidate.toJSON())
@@ -114,7 +113,9 @@ async function connect(update) {
 }
 
 connectlink.addEventListener("click",async function () {
-    connect(true);
+    let pc = new RTCPeerConnection(servers);
+    peerconnections.push(pc)
+    connect(true,pc);
 })
 
 const newList = getCameras();
