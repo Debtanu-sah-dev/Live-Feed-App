@@ -26,7 +26,9 @@ const list = document.querySelector('[data-list]');
 const copy = document.querySelector('[data-copy]');
 const camera = document.querySelector('[data-camera]');
 const connectlink = document.querySelector('[data-connectlink]');
+const end = document.querySelector('[data-end]');
 let isCamerOn = false;
+let local_link_primitive = "";
 
 async function updateList(cameras){
     list.innerHTML = "";
@@ -89,7 +91,6 @@ async function connect(update,PeerConnection) {
                     let pc = new RTCPeerConnection(servers);
                     peerconnections.push(pc)
                     let val = await connect(false,pc);
-                    console.log(change)
 
                     newp.doc(change.doc.id).set({
                         id:val,
@@ -134,7 +135,42 @@ async function connect(update,PeerConnection) {
 connectlink.addEventListener("click",async function () {
     let pc = new RTCPeerConnection(servers);
     peerconnections.push(pc)
-    connect(true,pc);
+    local_link_primitive = await connect(true,pc);
+    end.style.display = "inline-block";
+})
+
+end.addEventListener("click",async function () {
+    let doc = db.collection("feeds").doc(local_link_primitive);
+    let deleteabledocs = [doc];
+    let newp = doc.collection("newp");
+    if(newp){
+        let alldocs = await newp.get();
+    
+        alldocs.docs.forEach(async(docs) => {
+            let data = docs.data();
+            deleteabledocs.push(db.collection("feeds").doc(data.id))
+        })
+    }
+
+    deleteabledocs.forEach(async(docs) => {
+        await docs.delete();
+    })
+
+    peerconnections.forEach(pc => {
+        pc.close();
+    })
+    peerconnections = [];
+    localStream.getTracks().forEach(track => {
+        track.stop();
+    })
+    localStream = null;
+    isCamerOn = false;
+    link.innerText = "";
+    end.style.display = "none";
+    local_link_primitive = "";
+
+    video.srcObject = null;
+    connectlink.style.display = "inline-block";
 })
 
 const newList = getCameras();

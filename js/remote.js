@@ -24,6 +24,7 @@ let remoteStream = new MediaStream();
 const video = document.querySelector('#video');
 const link = document.querySelector('[data-link]');
 const connecter = document.querySelector('[data-connecter]');
+const connecter_wrap = document.querySelector('#connecter');
 
 
 PeerConnection.ontrack = event => {
@@ -83,7 +84,7 @@ async function connect(feedId = link.value) {
             let doc = newp.doc();
 
             doc.set({})
-
+            
             doc.onSnapshot((snapshot) => {
                 const data = snapshot.data();
                 if(!PeerConnection.currentRemoteDescription && data.id != null){
@@ -91,16 +92,32 @@ async function connect(feedId = link.value) {
                 }
             })
         }
-
+        return true;
     } catch (e) {
         console.error(e);
         alert("Invalid Link");
+        return false;
     }
 }
 
-connecter.addEventListener("click", () => {
-    connect()
+connecter.addEventListener("click", async () => {
+    let bool = await connect();
+    if(bool){
+        connecter_wrap.style.display = "none";
+    }
 });
+
+PeerConnection.addEventListener("connectionstatechange",(e) => {
+    console.log(e)
+    console.log(PeerConnection.connectionState)
+    if(PeerConnection.connectionState == "disconnected"){
+        endsession();
+    }
+})
+
+function endsession(){
+    console.log("Session Ended 🔚")
+}
 
 //Initialize link
 if (new URLSearchParams(location.search).get("c") != null) {
