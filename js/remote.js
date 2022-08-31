@@ -22,10 +22,50 @@ let remoteStream = new MediaStream();
 //DOM Elements
 
 const video = document.querySelector('#video');
+const videoc = document.querySelector('#video-container');
 const link = document.querySelector('[data-link]');
+const fullBtn = document.querySelector('[data-fullscreen]');
 const connecter = document.querySelector('[data-connecter]');
 const connecter_wrap = document.querySelector('#connecter');
+const announce_input = document.querySelector('[data-aninp]');
+const announce_btn = document.querySelector('[data-anbtn]');
+const announce_panel = document.querySelector('#announce-panel');
+const motion_info = document.querySelector("#motion_obj");
+let isFullscreenCon = false;
+let dataChannel;
+let motionChannel;
 
+PeerConnection.addEventListener("datachannel", (e) => {
+    if(e.channel.label == "message"){
+        dataChannel = e.channel;
+    }
+    if(e.channel.label == "motion"){
+        motionChannel = e.channel;
+
+        motionChannel.addEventListener("message", (e) => {
+            console.log(JSON.parse(e.data))
+            motion_info.innerText = e.data
+        })
+    }
+})
+
+announce_btn.addEventListener("click", () => {
+    if(announce_input.value.trim() != ""){
+        dataChannel.send(announce_input.value)
+    }
+})
+
+fullBtn.addEventListener("click", () => {
+    isFullscreenCon = !isFullscreenCon;
+    if(isFullscreenCon){
+        videoc.requestFullscreen();
+        fullBtn.innerText = "Exit Fullscreen"
+    }
+    else{
+        document.exitFullscreen();
+        fullBtn.innerText = "Fullscreen"
+    }
+})
 
 PeerConnection.ontrack = event => {
     event.streams[0].getTracks().forEach((track) => {
@@ -92,6 +132,9 @@ async function connect(feedId = link.value) {
                 }
             })
         }
+
+        announce_panel.style.display = "block";
+
         return true;
     } catch (e) {
         console.error(e);

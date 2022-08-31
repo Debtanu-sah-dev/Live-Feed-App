@@ -21,14 +21,77 @@ let localStream = null;
 // DOM Elements
 
 const video = document.querySelector('#video');
+const videoc = document.querySelector('#video_container');
 const link = document.querySelector('[data-link]');
 const list = document.querySelector('[data-list]');
 const copy = document.querySelector('[data-copy]');
 const camera = document.querySelector('[data-camera]');
+const fullBtn = document.querySelector('[data-fullscreen]');
 const connectlink = document.querySelector('[data-connectlink]');
+const physics_enable = document.querySelector('[data-physics]');
 const end = document.querySelector('[data-end]');
 let isCamerOn = false;
 let local_link_primitive = "";
+let isFullscreenCon = false;
+let datachannel_list=[];
+let voices = [];
+let motion_obj = {
+    ao:null,
+    bo:null,
+    go:null,
+    xa:null,
+    ya:null,
+    za:null,
+    xag:null,
+    yag:null,
+    zag:null,
+    xg:null,
+    yg:null,
+    zg:null,
+    i:null
+};
+
+window.speechSynthesis.onvoiceschanged = () => {
+  voices = window.speechSynthesis.getVoices();
+};
+
+function sendMotionToAllPeers(){
+    for(i = 0; i < datachannel_list.length;i++){
+        datachannel_list[i][1].send(JSON.stringify(motion_obj))
+    }
+}
+
+function handleOrientation(event) {
+    motion_obj.ao = event.alpha;
+    motion_obj.bo = event.beta;
+    motion_obj.go = event.gamma;
+    sendMotionToAllPeers()
+}
+function handleMotion(event) {
+    motion_obj.xag = event.accelerationIncludingGravity.x;
+    motion_obj.yag = event.accelerationIncludingGravity.y;
+    motion_obj.zag = event.accelerationIncludingGravity.z;
+    motion_obj.xa = event.acceleration.x;
+    motion_obj.ya = event.acceleration.y;
+    motion_obj.za = event.acceleration.z;
+    motion_obj.i = event.interval;
+    motion_obj.zg = event.rotationRate.alpha;
+    motion_obj.xg = event.rotationRate.beta;
+    motion_obj.yg = event.rotationRate.gamma;
+    sendMotionToAllPeers()
+}
+
+physics_enable.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (
+        DeviceMotionEvent &&
+        typeof DeviceMotionEvent.requestPermission === "function"
+    ) {
+        DeviceMotionEvent.requestPermission();
+    }
+    window.addEventListener("devicemotion", handleMotion);
+    window.addEventListener("deviceorientation", handleOrientation);
+})
 
 async function updateList(cameras){
     list.innerHTML = "";
@@ -42,7 +105,20 @@ async function updateList(cameras){
     }).forEach((cameraOption) => {
         list.appendChild(cameraOption)
     })
+
 }
+
+fullBtn.addEventListener("click", () => {
+    isFullscreenCon = !isFullscreenCon;
+    if(isFullscreenCon){
+        videoc.requestFullscreen();
+        fullBtn.innerText = "Exit Fullscreen"
+    }
+    else{
+        document.exitFullscreen();
+        fullBtn.innerText = "Fullscreen"
+    }
+})
 
 async function getCameras() {
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -61,6 +137,7 @@ camera.addEventListener("click", async function () {
     video.play();
 
     isCamerOn = true;
+    connectlink.disabled=false
 })
 
 list.addEventListener("change", async function () {
@@ -90,6 +167,18 @@ async function connect(update,PeerConnection) {
                 if(change.type === "added"){
                     let pc = new RTCPeerConnection(servers);
                     peerconnections.push(pc)
+                    let dataChannel = pc.createDataChannel("message");
+                    let motionChannel = pc.createDataChannel("motion");
+                    datachannel_list.push([dataChannel,motionChannel])
+                    dataChannel.addEventListener("message", (event) => {
+                        console.log(event)
+                        let speech = new SpeechSynthesisUtterance();
+                        speech.lang = "en";
+                        speech.text = event.data;
+                        speech.voice = voices[0];
+                        window.speechSynthesis.speak(speech);
+                    })
+                    
                     let val = await connect(false,pc);
 
                     newp.doc(change.doc.id).set({
@@ -134,6 +223,18 @@ async function connect(update,PeerConnection) {
 
 connectlink.addEventListener("click",async function () {
     let pc = new RTCPeerConnection(servers);
+    let dataChannel = pc.createDataChannel("message");
+    let motionChannel = pc.createDataChannel("motion");
+    datachannel_list.push([dataChannel,motionChannel])
+    dataChannel.addEventListener("message", (event) => {
+        console.log(event)
+        let speech = new SpeechSynthesisUtterance();
+        speech.lang = "en";
+        speech.text = event.data;
+        speech.voice = voices[0];
+        window.speechSynthesis.speak(speech);
+    })
+
     peerconnections.push(pc)
     local_link_primitive = await connect(true,pc);
     end.style.display = "inline-block";

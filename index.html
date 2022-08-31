@@ -8,15 +8,17 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <h1 id="link" data-link></h1>
+    <button class="button" data-copy>Copy Link</button>
     <div id="video_container">
-        <h1 id="link" data-link></h1>
-        <button class="button" data-copy>Copy Link</button>
         <video muted id="video" autoplay playsinline></video>
+        <button data-fullscreen>Full screen</button>
     </div>
     <div id="controls">
         <select class="select" data-list></select>
         <button class="button" data-camera>Open Camera</button>
-        <button class="button" data-connectlink>Connect <span>LINK<span></button>
+        <button class="button" data-connectlink disabled>Connect <span>LINK<span></button>
+        <button class="button" data-physics>Allow Physical Update</button>
         <button class="button" data-end>End <span>SESSION<span></button>
     </div>
 
