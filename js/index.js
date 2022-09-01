@@ -272,6 +272,7 @@ end.addEventListener("click",async function () {
 
     video.srcObject = null;
     connectlink.style.display = "inline-block";
+    location.reload()
 })
 
 const newList = getCameras();

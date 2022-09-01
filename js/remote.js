@@ -46,7 +46,6 @@ PeerConnection.addEventListener("datachannel", (e) => {
         motionChannel.addEventListener("message", (e) => {
             console.log(JSON.parse(e.data))
             motion_obj = JSON.parse(e.data)
-            motion_info.innerText = e.data
         })
     }
 })
