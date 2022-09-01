@@ -55,12 +55,22 @@ window.speechSynthesis.onvoiceschanged = () => {
   voices = window.speechSynthesis.getVoices();
 };
 
-function sendMotionToAllPeers(){
+function restrictPC(){
     datachannel_list = datachannel_list.filter((element) => {
         return element[2].iceConnectionState != 'disconnected'
     })
+    peerconnections = peerconnections.filter((element) => {
+        return element.iceConnectionState != 'disconnected'
+    })
+    requestAnimationFrame(restrictPC)
+}
+
+function sendMotionToAllPeers(){
+    
     for(i = 0; i < datachannel_list.length;i++){
-        datachannel_list[i][1].send(JSON.stringify(motion_obj))
+        if(datachannel_list[i][1].readyState == "open"){
+            datachannel_list[i][1].send(JSON.stringify(motion_obj))
+        }
     }
 }
 
@@ -241,6 +251,7 @@ connectlink.addEventListener("click",async function () {
     peerconnections.push(pc)
     local_link_primitive = await connect(true,pc);
     end.style.display = "inline-block";
+    restrictPC();
 })
 
 end.addEventListener("click",async function () {
