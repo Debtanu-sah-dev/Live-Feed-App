@@ -41,6 +41,7 @@
 
         //drag to move the world.
         orbitControl();
+        angleMode(DEGREES); 
 
         ambientLight(150);
         noStroke();
@@ -48,9 +49,9 @@
         pointLight(255, 255, 255, 0, 0, 250);
         push();
         if(motion_obj != null){
-            rotateZ(motion_obj.zo);
-            rotateX(motion_obj.xo);
-            rotateY(motion_obj.yo);
+            rotateZ(motion_obj.ao);
+            rotateX(motion_obj.go);
+            rotateY(motion_obj.bo);
         }
         fill(225)
         // specularMaterial(250);

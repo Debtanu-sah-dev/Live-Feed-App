@@ -56,6 +56,9 @@ window.speechSynthesis.onvoiceschanged = () => {
 };
 
 function sendMotionToAllPeers(){
+    datachannel_list.filter((element) => {
+        return element[2].connectionState != "disconnected"
+    })
     for(i = 0; i < datachannel_list.length;i++){
         datachannel_list[i][1].send(JSON.stringify(motion_obj))
     }
@@ -169,7 +172,7 @@ async function connect(update,PeerConnection) {
                     peerconnections.push(pc)
                     let dataChannel = pc.createDataChannel("message");
                     let motionChannel = pc.createDataChannel("motion");
-                    datachannel_list.push([dataChannel,motionChannel])
+                    datachannel_list.push([dataChannel,motionChannel,pc])
                     dataChannel.addEventListener("message", (event) => {
                         console.log(event)
                         let speech = new SpeechSynthesisUtterance();
@@ -225,7 +228,7 @@ connectlink.addEventListener("click",async function () {
     let pc = new RTCPeerConnection(servers);
     let dataChannel = pc.createDataChannel("message");
     let motionChannel = pc.createDataChannel("motion");
-    datachannel_list.push([dataChannel,motionChannel])
+    datachannel_list.push([dataChannel,motionChannel,pc])
     dataChannel.addEventListener("message", (event) => {
         console.log(event)
         let speech = new SpeechSynthesisUtterance();

@@ -34,7 +34,7 @@ const motion_info = document.querySelector("#motion_obj");
 let isFullscreenCon = false;
 let dataChannel;
 let motionChannel;
-let motion_obj = null
+let motion_obj = null;
 
 PeerConnection.addEventListener("datachannel", (e) => {
     if(e.channel.label == "message"){
@@ -44,8 +44,7 @@ PeerConnection.addEventListener("datachannel", (e) => {
         motionChannel = e.channel;
 
         motionChannel.addEventListener("message", (e) => {
-            console.log(JSON.parse(e.data))
-            motion_obj = JSON.parse(e.data)
+            motion_obj = JSON.parse(e.data);
         })
     }
 })
