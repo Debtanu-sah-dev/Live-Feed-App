@@ -56,8 +56,8 @@ window.speechSynthesis.onvoiceschanged = () => {
 };
 
 function sendMotionToAllPeers(){
-    datachannel_list.filter((element) => {
-        return element[2].connectionState != "disconnected"
+    datachannel_list = datachannel_list.filter((element) => {
+        return element[2].readyState != null
     })
     for(i = 0; i < datachannel_list.length;i++){
         datachannel_list[i][1].send(JSON.stringify(motion_obj))
