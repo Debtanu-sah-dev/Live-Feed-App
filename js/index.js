@@ -29,9 +29,12 @@ const camera = document.querySelector('[data-camera]');
 const fullBtn = document.querySelector('[data-fullscreen]');
 const connectlink = document.querySelector('[data-connectlink]');
 const physics_enable = document.querySelector('[data-physics]');
+const location_btn = document.querySelector('[data-location]');
+const error_msg = document.querySelector('[data-error]');
 const end = document.querySelector('[data-end]');
 let isCamerOn = false;
 let local_link_primitive = "";
+let prev_buffer = null;
 let isFullscreenCon = false;
 let datachannel_list=[];
 let voices = [];
@@ -57,7 +60,7 @@ window.speechSynthesis.onvoiceschanged = () => {
 
 function restrictPC(){
     datachannel_list = datachannel_list.filter((element) => {
-        return element[2].iceConnectionState != 'disconnected'
+        return element[3].iceConnectionState != 'disconnected'
     })
     peerconnections = peerconnections.filter((element) => {
         return element.iceConnectionState != 'disconnected'
@@ -106,6 +109,28 @@ physics_enable.addEventListener("click", (e) => {
     window.addEventListener("deviceorientation", handleOrientation);
 })
 
+location_btn.addEventListener("click", () => {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (pos) {
+            let buffer = {
+                lat:pos.coords.latitude,
+                lon:pos.coords.longitude
+            }
+
+            for(i = 0; i < datachannel_list.length;i++){
+                if(datachannel_list[i][2].readyState == "open"){
+                    datachannel_list[i][2].send(JSON.stringify(buffer))
+                }
+            }
+        });
+    }
+    else{
+        error_msg.innerHTML = "Geolocation is not supported by this browser or device.";
+    }
+
+})
+
+
 async function updateList(cameras){
     list.innerHTML = "";
     let arr = await cameras;
@@ -129,7 +154,7 @@ fullBtn.addEventListener("click", () => {
     }
     else{
         document.exitFullscreen();
-        fullBtn.innerText = "Fullscreen"
+        fullBtn.innerText = "Full screen"
     }
 })
 
@@ -182,7 +207,8 @@ async function connect(update,PeerConnection) {
                     peerconnections.push(pc)
                     let dataChannel = pc.createDataChannel("message");
                     let motionChannel = pc.createDataChannel("motion");
-                    datachannel_list.push([dataChannel,motionChannel,pc])
+                    let glChannel = pc.createDataChannel("gl");
+                    datachannel_list.push([dataChannel,motionChannel,glChannel,pc])
                     dataChannel.addEventListener("message", (event) => {
                         console.log(event)
                         let speech = new SpeechSynthesisUtterance();
@@ -238,7 +264,8 @@ connectlink.addEventListener("click",async function () {
     let pc = new RTCPeerConnection(servers);
     let dataChannel = pc.createDataChannel("message");
     let motionChannel = pc.createDataChannel("motion");
-    datachannel_list.push([dataChannel,motionChannel,pc])
+    let glChannel = pc.createDataChannel("gl");
+    datachannel_list.push([dataChannel,motionChannel,glChannel,pc])
     dataChannel.addEventListener("message", (event) => {
         console.log(event)
         let speech = new SpeechSynthesisUtterance();

@@ -5,6 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="css/remote.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+    integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+    crossorigin=""/>
 </head>
 <body>
     <div id="connecter">
@@ -13,7 +17,9 @@
     </div>
     <div id="video-container">
         <video id="video" autoplay playsinline ></video>
+        <video muted autoplay playsinline id="bufvideo"></video>
         <button data-fullscreen>Full screen</button>
+        <button data-vr>VR</button>
     </div>
     <div id="announce-panel" style="display:none;">
         <input type="text" data-aninp>
@@ -22,14 +28,23 @@
     <div id="motion_obj">
 
     </div>
+    <div id="Geolocation">
+        
+    </div>
+    <p id="elevation"></p>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js" integrity="sha512-rCZdHNB0AePry6kAnKAVFMRfWPmUXSo+/vlGtrOUvhsxD0Punm/xWbEh+8vppPIOzKB9xnk42yCRZ5MD/jvvjQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="js/quaternion.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+    integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+    crossorigin=""></script>
     <script src="js/FIREBASE_CONFIG.JS"></script>
     <script src="js/remote.js"></script>
     <script>
+    const rad = Math.PI / 180;
     function setup() {
         let canvas = createCanvas(710, 400, WEBGL);
         canvas.parent("#motion_obj")
@@ -37,7 +52,6 @@
 
     function draw() {
         background(100);
-        let radius = width * 1.5;
 
         //drag to move the world.
         orbitControl();
@@ -49,9 +63,13 @@
         pointLight(255, 255, 255, 0, 0, 250);
         push();
         if(motion_obj != null){
-            rotateZ(motion_obj.ao);
-            rotateX(motion_obj.go);
-            rotateY(motion_obj.bo);
+            // rotateZ(motion_obj.ao);
+            // rotateX(motion_obj.bo);
+            // rotateY(motion_obj.go);
+
+            let q = Quaternion.fromEuler(motion_obj.ao * rad,motion_obj.bo * rad,motion_obj.go * rad,"YXZ" )
+
+            applyMatrix(q.conjugate().toMatrix4())
         }
         fill(225)
         // specularMaterial(250);

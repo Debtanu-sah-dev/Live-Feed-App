@@ -1,0 +1,28 @@
+#Geolocation{
+    height: 50vh;
+}
+
+#bufvideo{
+    display:none;
+}
+
+#video-container{
+    position: relative;
+    display: flex;
+}
+
+[data-fullscreen],[data-vr]{
+    height: fit-content;
+}
+
+#video-container:fullscreen > [data-vr], #video-container:fullscreen > [data-fullscreen]{
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.full{
+    width: 50%;
+    height: 100%;
+    display: flex;
+}

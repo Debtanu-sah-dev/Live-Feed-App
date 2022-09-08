@@ -31,10 +31,23 @@ const announce_input = document.querySelector('[data-aninp]');
 const announce_btn = document.querySelector('[data-anbtn]');
 const announce_panel = document.querySelector('#announce-panel');
 const motion_info = document.querySelector("#motion_obj");
+const geolocation_con = document.querySelector("#Geolocation");
+const elevation = document.querySelector("#elevation");
+const vrbtn = document.querySelector("[data-vr]");
+const bufvideo = document.querySelector("#bufvideo");
+let isVr = false;
 let isFullscreenCon = false;
 let dataChannel;
 let motionChannel;
+let glChannel;
 let motion_obj = null;
+let gl_buffer = null;
+let map_markers = []
+let map = L.map('Geolocation').setView([51.505, -0.09], 13);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+}).addTo(map);
 
 PeerConnection.addEventListener("datachannel", (e) => {
     if(e.channel.label == "message"){
@@ -47,7 +60,26 @@ PeerConnection.addEventListener("datachannel", (e) => {
             motion_obj = JSON.parse(e.data);
         })
     }
+    if(e.channel.label == "gl"){
+        glChannel = e.channel;
+
+        glChannel.addEventListener("message",async function (e)  {
+            let data = JSON.parse(e.data)
+            map.setView([data.lat,data.lon],13);
+            let marker = L.marker([data.lat,data.lon]).addTo(map);
+            map_markers.push(marker)
+            let elevation_buffer = await fetchElevation(data.lat,data.lon);
+            let p = 2;
+            elevation.innerText = `Elevation: ${Math.round((elevation_buffer.results[0].elevation * 3.28084)*(10**p))/(10**p)} ft`
+        })
+    }
 })
+
+async function fetchElevation(lat, lon) {
+    let response = await fetch("https://api.open-elevation.com/api/v1/lookup?locations=" + lat + "," + lon)
+    let elevation_buffer = await response.json();
+    return elevation_buffer;
+}
 
 announce_btn.addEventListener("click", () => {
     if(announce_input.value.trim() != ""){
@@ -55,15 +87,56 @@ announce_btn.addEventListener("click", () => {
     }
 })
 
+vrbtn.addEventListener("click", () => {
+    isVr = !isVr;
+    if(isVr){
+        bufvideo.srcObject = remoteStream;
+        video.classList.add("full");
+        bufvideo.classList.add("full");
+        bufvideo.style.display = "flex"
+        videoc.requestFullscreen()
+        fullBtn.style.display = "none"
+    }
+    else{
+        video.classList.remove("full");
+        bufvideo.classList.remove("full");
+        bufvideo.srcObject = null;
+        document.exitFullscreen();
+        fullBtn.style.display = "initial"
+    }
+})
+
+document.addEventListener('fullscreenchange', onFullScreenChange, false);
+document.addEventListener('webkitfullscreenchange', onFullScreenChange, false);
+document.addEventListener('mozfullscreenchange', onFullScreenChange, false);
+
+function onFullScreenChange() {
+    var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
+
+    if(fullscreenElement == null){
+        vrbtn.style.display = "initial"
+        fullBtn.style.display = "initial"
+        fullBtn.innerText = "Full screen"
+        video.classList.remove("full");
+        bufvideo.style.display = "none"
+        bufvideo.classList.remove("full");
+        bufvideo.srcObject = null;
+        isVr=false;
+        isFullscreenCon = false;
+    }
+}
+
 fullBtn.addEventListener("click", () => {
     isFullscreenCon = !isFullscreenCon;
     if(isFullscreenCon){
         videoc.requestFullscreen();
         fullBtn.innerText = "Exit Fullscreen"
+        vrbtn.style.display = "none"
     }
     else{
         document.exitFullscreen();
-        fullBtn.innerText = "Fullscreen"
+        fullBtn.innerText = "Full screen"
+        vrbtn.style.display = "initial"
     }
 })
 
