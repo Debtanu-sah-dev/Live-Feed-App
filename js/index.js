@@ -150,11 +150,11 @@ fullBtn.addEventListener("click", () => {
     isFullscreenCon = !isFullscreenCon;
     if(isFullscreenCon){
         videoc.requestFullscreen();
-        fullBtn.innerText = "Exit Fullscreen"
+        fullBtn.querySelector("span").innerText = "fullscreen_exit"
     }
     else{
         document.exitFullscreen();
-        fullBtn.innerText = "Full screen"
+        fullBtn.querySelector("span").innerText = "fullscreen"
     }
 })
 
@@ -172,6 +172,7 @@ camera.addEventListener("click", async function () {
     });
     
     video.srcObject = localStream;
+    videoc.style.display = "flex";
     video.play();
 
     isCamerOn = true;
